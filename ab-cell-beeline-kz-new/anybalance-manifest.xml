@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <provider>
-	<id version="93">ab-cell-beeline-new</id>
-	<name>Билайн (новый кабинет)</name>
+	<id version="1">ab-cell-beeline-kz-new</id>
+	<name>БилайнKZ(новый кабинет)</name>
 	<api flags="no_browser" min_level="5"/>
 	<description html="true"><![CDATA[
 	<p>Предоставляет  информацию о балансе и тарифном плане для пользователей сотового оператора "Билайн" (<a href="http://beeline.kz">http://beeline.kz</a>).</p>
@@ -61,5 +61,5 @@
 	</counters>
 	<keywords>beeline</keywords>
 	<type>cell</type>
-	<country>ru</country>
+	<country>kz</country>
 </provider>
