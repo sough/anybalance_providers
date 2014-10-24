@@ -1,0 +1,5 @@
+﻿class AnyBalance {
+	function getPreferences() {
+
+	}
+}
