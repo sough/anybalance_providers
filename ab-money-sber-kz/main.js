@@ -6,13 +6,13 @@ var g_headers = {
 	'Accept-Charset': 'windows-1251,utf-8;q=0.7,*;q=0.3',
 	'Accept-Language': 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4',
 	'Connection': 'keep-alive',
-	'Origin': 'https://www.sob.kz',
+	'Origin': 'https://online.sberbank.kz',
 	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.76 Safari/537.36',
 };
 
 function main() {
 	var prefs = AnyBalance.getPreferences();
-	var baseurl = 'https://www.sob.kz/';
+	var baseurl = 'https://online.sberbank.kz';
 	AnyBalance.setDefaultCharset('utf-8');
 
 	checkEmpty(prefs.login, 'Введите логин!');
@@ -57,7 +57,7 @@ function getSID(html) {
 function fetchCard(html, baseurl) {
 	var prefs = AnyBalance.getPreferences();
 	if (prefs.lastdigits && !/^\d{3}$/.test(prefs.lastdigits))
-		throw new AnyBalance.Error("Надо указывать 3 последних цифры карты или не указывать ничего");
+		throw new AnyBalance.Error("Надо указывать 3 последних символа карты или не указывать ничего");
 
 	var result = {success: true};
 	// Иногда мы не переходим на нужную страницу, из-за каких-то глюков.
@@ -89,7 +89,7 @@ function fetchCard(html, baseurl) {
 
 	var root = getParam(html, null, null, regExp);
 	if(!root){
-		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними цифрами ' + prefs.lastdigits : 'ни одной карты!'));
+		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними символами ' + prefs.lastdigits : 'ни одной карты!'));
 	}
 
 	getParam(root, result, 'balance', /\d{3}\*+\d{3}[\s\S]*?class='ibec_balance'(?:[^>]*>){3}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
@@ -103,7 +103,7 @@ function fetchCard(html, baseurl) {
 function fetchAcc(html, baseurl) {
 	var prefs = AnyBalance.getPreferences();
 	if (prefs.lastdigits && !/^\d{3}$/.test(prefs.lastdigits))
-		throw new AnyBalance.Error("Надо указывать 3 последних цифры карты или не указывать ничего");
+		throw new AnyBalance.Error("Надо указывать 3 последних символа счёта или не указывать ничего");
 
 	var result = {success: true};
 	// Иногда мы не переходим на нужную страницу, из-за каких-то глюков.
@@ -129,21 +129,18 @@ function fetchAcc(html, baseurl) {
 
 	getParam(html, result, 'userName', /ibec_header_right">\s*<b>([\s\S]*?)<\//i, replaceTagsAndSpaces);
 
-	var accnum = prefs.lastdigits || '\\d{3}';
-	var regExp = new RegExp('<root>(?:[\\s\\S]*?<name[^>]*>){12}\\d{3}\\*+' + accnum + '[\\s\\S]*?</root>','i');
+	var accnum = prefs.lastdigits || '\\S{3}';
+	var regExp = new RegExp('(<tr class=\"\\s*?owwb-cs-slide-list(.)+?>\\n.+\\n.+\\S{17}'+ accnum + '.+(\\n|.)+?</tr>)','i');
 
 	var root = getParam(html, null, null, regExp);
 	if(!root){
 		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними цифрами ' + prefs.lastdigits : 'ни одной карты!'));
 	}
-	getParam(root, result, '__tariff', /(\d{3}\*+\d{3})/i);
-	result.accNumber = result.__tariff;
+
+	getParam(root, result, 'accNumber', /KZ\\S{20}/i);
+	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
+	getParam(root, result, 'currency', /class="owwb-cs-slide-list-amount-currency"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseCurrency);
+	//result.accNumber = result.__tariff;
+
 	AnyBalance.setResult(result);
-
-	// getParam(root, result, 'balance', /\d{3}\*+\d{3}[\s\S]*?class='owwb-cs-slide-list-amount-value'(?:[^>]*>){3}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
-	// getParam(root, result, ['currency', 'balance'], /\d{3}\*+\d{3}[\s\S]*?class='owwb-cs-slide-list-amount-currency'(?:[^>]*>){3}([^<]*)/i, replaceTagsAndSpaces, parseCurrency);
-	// getParam(root, result, '__tariff', /(\d{3}\*+\d{3})/i);
-	// result.cardNumber = result.cardNumber = result.__tariff;;
-
-	// AnyBalance.setResult(result);
 }
