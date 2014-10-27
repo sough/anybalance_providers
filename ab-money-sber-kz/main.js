@@ -113,6 +113,16 @@ function fetchAcc(html, baseurl) {
 		'MENU_ID':'MENU',
 		'ITEM_ID':'MENU_CLICK',
 		SID:getSID(html),
+		'Step_ID':'0',
+		'CP_MENU_ITEM_ID':'SFMAIN_MENU.WB_PRODUCTS_ALL',
+	}, addHeaders({Referer: baseurl + 'frontend/frontend'}));
+
+	html = AnyBalance.requestPost(baseurl + 'frontend/frontend', {
+		'RQ_TYPE':'WORK',
+		'SCREEN_ID':'MAIN',
+		'MENU_ID':'MENU',
+		'ITEM_ID':'MENU_CLICK',
+		SID:getSID(html),
 		'Step_ID':'1',
 		'CP_MENU_ITEM_ID':'WB_PRODUCTS_ALL.ACCOUNTS',
 	}, addHeaders({Referer: baseurl + 'frontend/frontend'}));
@@ -127,6 +137,8 @@ function fetchAcc(html, baseurl) {
 		'CP_MENU_ITEM_ID':'ACCOUNTS.ACC_LIST',
 	}, addHeaders({Referer: baseurl + 'frontend/frontend'}));
 
+	throw new AnyBalance.Error("html");
+
 	getParam(html, result, 'userName', /ibec_header_right">\s*<b>([\s\S]*?)<\//i, replaceTagsAndSpaces);
 
 	var accnum = prefs.lastdigits || '\\S{3}';
@@ -137,10 +149,10 @@ function fetchAcc(html, baseurl) {
 		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними цифрами ' + prefs.lastdigits : 'ни одной карты!'));
 	}
 
-	getParam(root, result, 'accNumber', /KZ\\S{20}/i);
+	getParam(root, result, '__tariff', /KZ\\S{20}/i);
 	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
 	getParam(root, result, 'currency', /class="owwb-cs-slide-list-amount-currency"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseCurrency);
-	//result.accNumber = result.__tariff;
+	result.cardNumber = result.__tariff;
 
 	AnyBalance.setResult(result);
 }
