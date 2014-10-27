@@ -12,7 +12,7 @@ var g_headers = {
 
 function main() {
 	var prefs = AnyBalance.getPreferences();
-	var baseurl = 'https://online.sberbank.kz';
+	var baseurl = 'https://online.sberbank.kz/';
 	AnyBalance.setDefaultCharset('utf-8');
 
 	checkEmpty(prefs.login, 'Введите логин!');
@@ -102,7 +102,7 @@ function fetchCard(html, baseurl) {
 
 function fetchAcc(html, baseurl) {
 	var prefs = AnyBalance.getPreferences();
-	if (prefs.lastdigits && !/^\d{3}$/.test(prefs.lastdigits))
+	if (prefs.lastdigits && !/^\S{3}$/.test(prefs.lastdigits))
 		throw new AnyBalance.Error("Надо указывать 3 последних символа счёта или не указывать ничего");
 
 	var result = {success: true};
@@ -137,21 +137,18 @@ function fetchAcc(html, baseurl) {
 		'CP_MENU_ITEM_ID':'ACCOUNTS.ACC_LIST',
 	}, addHeaders({Referer: baseurl + 'frontend/frontend'}));
 
-	throw new AnyBalance.Error("html");
-
 	getParam(html, result, 'userName', /ibec_header_right">\s*<b>([\s\S]*?)<\//i, replaceTagsAndSpaces);
-
 	var accnum = prefs.lastdigits || '\\S{3}';
-	var regExp = new RegExp('(<tr class=\"\\s*?owwb-cs-slide-list(.)+?>\\n.+\\n.+\\S{17}'+ accnum + '.+(\\n|.)+?</tr>)','i');
+	var regExp = new RegExp('owwb-cs-slide-list[\\s\\S]*?KZ\\S{15}'+ accnum + '[\\s\\S]*?</tr>','i');
 
 	var root = getParam(html, null, null, regExp);
 	if(!root){
 		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними цифрами ' + prefs.lastdigits : 'ни одной карты!'));
 	}
 
-	getParam(root, result, '__tariff', /KZ\\S{20}/i);
-	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
-	getParam(root, result, 'currency', /class="owwb-cs-slide-list-amount-currency"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseCurrency);
+	getParam(root, result, '__tariff', /KZ\S{18}/i);
+	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces);
+	getParam(root, result, 'currency', /class="owwb-cs-slide-list-amount-currency"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces);
 	result.cardNumber = result.__tariff;
 
 	AnyBalance.setResult(result);
