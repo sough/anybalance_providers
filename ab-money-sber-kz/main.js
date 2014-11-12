@@ -139,9 +139,25 @@ function fetchAcc(html, baseurl) {
 
 	getParam(html, result, 'userName', /ibec_header_right">\s*<b>([\s\S]*?)<\//i, replaceTagsAndSpaces);
 	var accnum = prefs.lastdigits || '\\S{3}';
-	var regExp = new RegExp('owwb-cs-slide-list[\\s\\S]*?KZ\\S{15}'+ accnum + '[\\s\\S]*?</tr>','i');
 
-	var root = getParam(html, null, null, regExp);
+	/*#####
+	## Fetch all trs by groups and loop throught them to find needed account
+	######*/
+	var regexHtml = new RegExp('(<tr class=\"\\s*owwb-cs-slide-list[\\s\\S]*?</tr>)','gi');
+	var regexTr = new RegExp('KZ\\S{15}'+ accnum,'i');
+
+	var matchHtml;
+	var matchTr;
+	var index = 1;
+
+	while (matchHtml = regexHtml.exec(html)) {
+        matchTr = regexTr.exec(matchHtml[index]);
+        if (matchTr!=null) {
+        	var root = matchHtml[index];
+        	break;
+        }
+    }
+
 	if(!root){
 		throw new AnyBalance.Error('Не удалось найти ' + (prefs.lastdigits ? 'карту с последними цифрами ' + prefs.lastdigits : 'ни одной карты!'));
 	}
