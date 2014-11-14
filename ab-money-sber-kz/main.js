@@ -163,7 +163,7 @@ function fetchAcc(html, baseurl) {
 	}
 
 	getParam(root, result, '__tariff', /KZ\S{18}/i);
-	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces);
+	getParam(root, result, 'balance', /class="owwb-cs-slide-list-amount-value"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces, parseBalance);
 	getParam(root, result, 'currency', /class="owwb-cs-slide-list-amount-currency"(?:[^>]*>){1}([^<]*)/i, replaceTagsAndSpaces);
 	result.cardNumber = result.__tariff;
 
